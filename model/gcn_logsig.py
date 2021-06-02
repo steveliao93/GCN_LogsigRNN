@@ -1,3 +1,4 @@
+# 2*(MSGCN + LSTM)
 import sys
 sys.path.insert(0, '')
 
@@ -107,11 +108,12 @@ class Model(nn.Module):
         x = self.data_bn(x)
         x = x.view(N * M, V, C, T).permute(0, 2, 3, 1).contiguous()
         # N,C,T,V
-
+        
+        # Start MSGCN
         x = F.relu(self.gcn1(x), inplace=False)
         x = x.permute(0, 3, 2, 1).contiguous().view(
             N * M * V, T, self.c1).contiguous()
-
+        # Start LogsigRNN with starting point
         x_sp = self.start_position1(x).type_as(x)
         x_logsig = self.logsig1(x).type_as(x)
 
@@ -123,11 +125,13 @@ class Model(nn.Module):
         x = self.logsig_bn1(x)
         x = x.view(
             N * M, V, self.n_segments1, self.c1).permute(0, 3, 2, 1).contiguous()
-
+        
+        # Start MSGCN
         x = F.relu(self.gcn2(x), inplace=False)
         x = x.permute(0, 3, 2, 1).contiguous().view(
             N * M * V, self.n_segments1, self.c2).contiguous()
-
+        
+        # Start LogsigRNN with starting point
         x_sp = self.start_position2(x).type_as(x)
         x_logsig = self.logsig2(x).type_as(x)
 
