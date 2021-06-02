@@ -1,3 +1,4 @@
+# MSGCN + LogsigRNN + MSGCN + LSTM
 import sys
 sys.path.insert(0, '')
 
@@ -14,94 +15,6 @@ from model.ms_gtcn import SpatialTemporal_MS_GCN, UnfoldTemporalWindows
 from model.mlp import MLP
 from model.activation import activation_factory
 from model.l_psm import *
-
-
-class MS_G3D(nn.Module):
-    def __init__(self,
-                 in_channels,
-                 out_channels,
-                 A_binary,
-                 num_scales,
-                 window_size,
-                 window_stride,
-                 window_dilation,
-                 embed_factor=1,
-                 activation='relu'):
-        super().__init__()
-        self.window_size = window_size
-        self.out_channels = out_channels
-        self.embed_channels_in = self.embed_channels_out = out_channels // embed_factor
-        if embed_factor == 1:
-            self.in1x1 = nn.Identity()
-            self.embed_channels_in = self.embed_channels_out = in_channels
-            # The first STGC block changes channels right away; others change at collapse
-            if in_channels == 3:
-                self.embed_channels_out = out_channels
-        else:
-            self.in1x1 = MLP(in_channels, [self.embed_channels_in])
-
-        self.gcn3d = nn.Sequential(
-            UnfoldTemporalWindows(window_size, window_stride, window_dilation),
-            SpatialTemporal_MS_GCN(
-                in_channels=self.embed_channels_in,
-                out_channels=self.embed_channels_out,
-                A_binary=A_binary,
-                num_scales=num_scales,
-                window_size=window_size,
-                use_Ares=True
-            )
-        )
-
-        self.out_conv = nn.Conv3d(
-            self.embed_channels_out, out_channels, kernel_size=(1, self.window_size, 1))
-        self.out_bn = nn.BatchNorm2d(out_channels)
-
-    def forward(self, x):
-        N, _, T, V = x.shape
-        x = self.in1x1(x)
-        # Construct temporal windows and apply MS-GCN
-        x = self.gcn3d(x)
-
-        # Collapse the window dimension
-        x = x.view(N, self.embed_channels_out, -1, self.window_size, V)
-        x = self.out_conv(x).squeeze(dim=3)
-        x = self.out_bn(x)
-
-        # no activation
-        return x
-
-
-class MultiWindow_MS_G3D(nn.Module):
-    def __init__(self,
-                 in_channels,
-                 out_channels,
-                 A_binary,
-                 num_scales,
-                 window_sizes=[3, 5],
-                 window_stride=1,
-                 window_dilations=[1, 1]):
-
-        super().__init__()
-        self.gcn3d = nn.ModuleList([
-            MS_G3D(
-                in_channels,
-                out_channels,
-                A_binary,
-                num_scales,
-                window_size,
-                window_stride,
-                window_dilation
-            )
-            for window_size, window_dilation in zip(window_sizes, window_dilations)
-        ])
-
-    def forward(self, x):
-        # Input shape: (N, C, T, V)
-        out_sum = 0
-        for gcn3d in self.gcn3d:
-            out_sum += gcn3d(x)
-        # no activation
-        return out_sum
 
 
 class Model(nn.Module):
@@ -129,14 +42,6 @@ class Model(nn.Module):
         self.c3 = c3
 
         # r=3 STGC blocks
-        self.gcn3d1 = MultiWindow_MS_G3D(
-            3, c1, A_binary, num_g3d_scales, window_stride=1)
-        self.sgcn1 = nn.Sequential(
-            MS_GCN(num_gcn_scales, 3, c1, A_binary, disentangled_agg=True),
-            MS_TCN(c1, c1),
-            MS_TCN(c1, c1))
-        self.sgcn1[-1].act = nn.Identity()
-        self.tcn1 = MS_TCN(c1, c1)
 
         self.gcn1 = MS_GCN(num_gcn_scales, 3, c1,
                            A_binary, disentangled_agg=True)
@@ -176,44 +81,8 @@ class Model(nn.Module):
         )
         self.logsig_bn2 = nn.BatchNorm1d(self.n_segments2)
 
-        self.gcn3 = MS_GCN(num_gcn_scales, c2, c3,
-                           A_binary, disentangled_agg=True)
+        
 
-        self.n_segments3 = 20
-        self.logsig_channels3 = signatory.logsignature_channels(in_channels=c3,
-                                                                depth=2)
-        self.logsig3 = LogSig_v1(c3, n_segments=self.n_segments3, logsig_depth=2,
-                                 logsig_channels=self.logsig_channels3)
-        self.start_position3 = sp(self.n_segments3)
-
-        self.lstm3 = nn.LSTM(
-            input_size=self.logsig_channels3 + c3,
-            hidden_size=c3,
-            num_layers=1,
-            batch_first=True,
-            bidirectional=False
-        )
-        self.logsig_bn3 = nn.BatchNorm1d(self.n_segments3)
-
-        self.gcn3d2 = MultiWindow_MS_G3D(
-            c1, c2, A_binary, num_g3d_scales, window_stride=2)
-        self.sgcn2 = nn.Sequential(
-            MS_GCN(num_gcn_scales, c1, c1, A_binary, disentangled_agg=True),
-            MS_TCN(c1, c2, stride=2),
-            MS_TCN(c2, c2))
-        self.sgcn2[-1].act = nn.Identity()
-        self.tcn2 = MS_TCN(c2, c2)
-
-        self.gcn3d3 = MultiWindow_MS_G3D(
-            c2, c3, A_binary, num_g3d_scales, window_stride=2)
-        self.sgcn3 = nn.Sequential(
-            MS_GCN(num_gcn_scales, c2, c2, A_binary, disentangled_agg=True),
-            MS_TCN(c2, c3, stride=2),
-            MS_TCN(c3, c3))
-        self.sgcn3[-1].act = nn.Identity()
-        self.tcn3 = MS_TCN(c3, c3)
-
-        self.fc = nn.Linear(c2, num_class)
 
     def forward(self, x):
         N, C, T, V, M = x.size()
@@ -221,11 +90,11 @@ class Model(nn.Module):
         x = self.data_bn(x)
         x = x.view(N * M, V, C, T).permute(0, 2, 3, 1).contiguous()
         # N,C,T,V
-
+        # start MSGCN
         x = F.relu(self.gcn1(x), inplace=False)
         x = x.permute(0, 3, 2, 1).contiguous().view(
             N * M * V, T, self.c1).contiguous()
-
+        # start LogsigRNN
         x_sp = self.start_position1(x).type_as(x)
         x_logsig = self.logsig1(x).type_as(x)
         self.lstm1.flatten_parameters()
@@ -233,11 +102,11 @@ class Model(nn.Module):
         x = self.logsig_bn1(x)
         x = x.view(
             N * M, V, self.n_segments1, self.c1).permute(0, 3, 2, 1).contiguous()
-
+        # start MSGCN
         x = F.relu(self.gcn2(x), inplace=False)
         x = x.permute(0, 3, 2, 1).contiguous().view(
             N * M * V, self.n_segments1, self.c2).contiguous()
-
+        # start LSTM
         #x_sp = self.start_position2(x).type_as(x)
         self.lstm2.flatten_parameters()
         x, _ = self.lstm2(x)
