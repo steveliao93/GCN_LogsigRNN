@@ -105,9 +105,10 @@ class Model(nn.Module):
 
     def forward(self, x, length):
         N, C, T, V, M = x.size()
+        # The number of segments varies from batch to batch
         n_segments1 = int(T / 3)
-        
         n_segments2 = int(T / 6)
+        
         x = x.permute(0, 4, 3, 1, 2).contiguous().view(N, M * V * C, T)
         x = self.data_bn(x)
         x = x.view(N * M, V, C, T).permute(0, 2, 3, 1).contiguous()
