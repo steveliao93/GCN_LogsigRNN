@@ -20,7 +20,7 @@ test_feeder_args:
   length_path: ./data/ntu120/xsub/val_data_len.npy
 
 # model
-model: model.logsig_gcn_var.Model
+model: model.gcn_logsig_var.Model
 model_args:
   num_class: 120
   num_point: 25
