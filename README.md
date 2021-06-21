@@ -21,7 +21,6 @@ Put downloaded data into the following directory structure:
 1. NTU RGB+D
     - `cd data_gen`
     - `python3 ntu120_gendata.py`
-    - Time estimate is ~ 3hrs to generate NTU 120 on a single core (feel free to parallelize the code :))
     
 ## Training & Testing
 
