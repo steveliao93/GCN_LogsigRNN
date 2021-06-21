@@ -1,1 +1,1 @@
-from . import msg3d
+from . import msg3d, gcn_logsig_var
