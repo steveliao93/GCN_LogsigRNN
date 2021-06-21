@@ -139,8 +139,8 @@ def gendata(file_list, out_path, ignored_sample_path, benchmark, part):
             sample_label.append(action_class - 1)   # to 0-indexed
 
     # Save labels
-    #with open(f'{out_path}/{part}_label.pkl', 'wb') as f:
-    #    pickle.dump((sample_paths, list(sample_label)), f)
+    with open(f'{out_path}/{part}_label.pkl', 'wb') as f:
+       pickle.dump((sample_paths, list(sample_label)), f)
 
     # Create data tensor (N,C,T,V,M)
     fp = np.zeros((len(sample_label), 3, max_frame,
@@ -155,7 +155,7 @@ def gendata(file_list, out_path, ignored_sample_path, benchmark, part):
     # Perform preprocessing on data tensor
     fp, length = pre_normalization(fp)
     # Save input data (train/val)
-    # np.save('{}/{}_data_joint.npy'.format(out_path, part), fp)
+    np.save('{}/{}_data_joint.npy'.format(out_path, part), fp)
     np.save('{}/{}_data_len.npy'.format(out_path, part), length)
 
 
