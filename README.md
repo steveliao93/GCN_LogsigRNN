@@ -24,5 +24,6 @@ Put downloaded data into the following directory structure:
     
 ## Training & Testing
 
-- The general training template command:
+For varied length case:
+- The general training template command
 - `python3 main_var.py --config ./config/ntu_sub/train_joint_logsig_gcn_var.yaml --device 0`
