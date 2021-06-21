@@ -80,33 +80,13 @@ class Model(nn.Module):
             batch_first=True,
             bidirectional=False
         )
-        # self.logsig_bn2 = nn.BatchNorm1d(self.n_segments2)
-
-        # self.gcn3 = MS_GCN(num_gcn_scales, c2, c3,
-        #                    A_binary, disentangled_agg=True)
-
-        # self.n_segments3 = 20
-        # self.logsig_channels3 = signatory.logsignature_channels(in_channels=c3,
-        #                                                         depth=2)
-        # self.logsig3 = LogSig_v1(c3, n_segments=self.n_segments3, logsig_depth=2,
-        #                          logsig_channels=self.logsig_channels3)
-        # self.start_position3 = sp(self.n_segments3)
-
-        # self.lstm3 = nn.LSTM(
-        #     input_size=self.logsig_channels3 + c3,
-        #     hidden_size=c3,
-        #     num_layers=1,
-        #     batch_first=True,
-        #     bidirectional=False
-        # )
-        # self.logsig_bn3 = nn.BatchNorm1d(self.n_segments3)
 
         self.fc = nn.Linear(c2, num_class)
 
     def forward(self, x, length):
         N, C, T, V, M = x.size()
+        # n_segment of each logsigrnn
         n_segments1 = 50
-        
         n_segments2 = 30
         x = x.permute(0, 4, 3, 1, 2).contiguous().view(N, M * V * C, T)
         x = self.data_bn(x)
