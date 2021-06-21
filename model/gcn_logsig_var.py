@@ -45,7 +45,7 @@ class Model(nn.Module):
         self.gcn1 = MS_GCN(num_gcn_scales, 3, c1,
                            A_binary, disentangled_agg=True)
 
-        self.n_segments1 = 80
+        
         self.logsig_channels1 = signatory.logsignature_channels(in_channels=c1,
                                                                 depth=2)
         self.logsig1 = LogSig_v2(c1, logsig_depth=2,
@@ -64,7 +64,6 @@ class Model(nn.Module):
         self.gcn2 = MS_GCN(num_gcn_scales, c1, c2,
                            A_binary, disentangled_agg=True)
 
-        self.n_segments2 = 40
         self.logsig_channels2 = signatory.logsignature_channels(in_channels=c2,
                                                                 depth=2)
         self.logsig2 = LogSig_v2(c2, logsig_depth=2,
