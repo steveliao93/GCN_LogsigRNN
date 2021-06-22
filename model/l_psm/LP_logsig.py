@@ -8,6 +8,8 @@ import signatory
 
 class LogSig_v1(torch.nn.Module):
     def __init__(self, in_channels, n_segments, logsig_depth, logsig_channels):
+        # logsig layer
+        # inp is a three dimensional tensor of shape (batch, stream, in_channels)
         super(LogSig_v1, self).__init__()
         self.in_channels = in_channels
         self.n_segments = n_segments
@@ -18,7 +20,6 @@ class LogSig_v1(torch.nn.Module):
         self.logsig_channels = logsig_channels
 
     def forward(self, inp):
-        # inp is a three dimensional tensor of shape (batch, stream, in_channels)
         nT = inp.size(1)
         dim_path = inp.size(-1)
         t_vec = np.linspace(1, nT, self.n_segments + 1)
@@ -35,6 +36,7 @@ class LogSig_v1(torch.nn.Module):
 
 class LogSig_v2(torch.nn.Module):
     def __init__(self, in_channels, logsig_depth, logsig_channels):
+        # same as v1, argument 'n_segments' is not initialized
         super(LogSig_v2, self).__init__()
         self.in_channels = in_channels
         self.logsig_depth = logsig_depth
@@ -83,48 +85,10 @@ class LogSig_rolling(nn.Module):
         return out
 
 
-class LogSig_var(torch.nn.Module):
-        # Variable length version of logsig layer
-    def __init__(self, in_channels, n_segments, logsig_depth, logsig_channels):
-        super(LogSig_var, self).__init__()
-        self.in_channels = in_channels
-        self.n_segments = n_segments
-        self.logsig_depth = logsig_depth
-
-        self.logsignature = signatory.LogSignature(depth=logsig_depth)
-
-        self.logsig_channels = logsig_channels
-
-    def forward(self, inp, length, n_batchs):
-        nT = inp.size(1)
-        dim_path = inp.size(-1)
-        batch_size = int(inp.size(0) / n_batchs)
-
-        MultiLevelLogSig = torch.zeros(
-            inp.size(0), self.n_segments, self.logsig_channels)
-
-        for i in range(n_batchs):
-
-            tmp_fm = length[i].item()
-            Tmp = inp[i * batch_size:(i + 1) * batch_size, :tmp_fm].clone()
-            # Repeat the actions
-            if tmp_fm < self.n_segments * 2:
-                tmpenlarge = (self.n_segments * 2) // tmp_fm + 1
-                tarlen = tmpenlarge * tmp_fm
-                Tmp = Tmp.repeat(
-                    1, tmpenlarge, 1).reshape(batch_size, tarlen, dim_path).contiguous()
-                tmp_fm = tarlen
-            t_vec = np.linspace(1, tmp_fm, self.n_segments + 1)
-            t_vec = [int(round(x)) for x in t_vec]
-
-            for j in range(self.n_segments):
-                MultiLevelLogSig[i * batch_size:(i + 1) * batch_size, j] = self.logsignature(
-                    Tmp[:, t_vec[j] - 1:t_vec[j + 1]].unsqueeze(0))
-        return MultiLevelLogSig
-
 
 class sp(torch.nn.Module):
     def __init__(self, n_segments):
+        # starting point
         super(sp, self).__init__()
 
         self.n_segments = n_segments
@@ -138,6 +102,7 @@ class sp(torch.nn.Module):
 
 class sp_v2(torch.nn.Module):
     def __init__(self, ):
+        # same as v1
         super(sp_v2, self).__init__()
 
     def forward(self, inp, n_segments):
@@ -147,26 +112,6 @@ class sp_v2(torch.nn.Module):
         return inp[:, t_vec[:-1]].clone()
 
 
-class sp_var(torch.nn.Module):
-    def __init__(self, n_segments):
-        super(sp_var, self).__init__()
-
-        self.n_segments = n_segments
-
-    def forward(self, inp, length, n_batchs):
-        batch_size = int(inp.size(0) / n_batchs)
-        out = []
-        for i in range(n_batchs):
-            tmp_fm = length[i].item()
-            if tmp_fm < self.n_segments * 2:
-                tmpenlarge = (self.n_segments * 2) // tmp_fm + 1
-                tmp_fm = tmpenlarge * tmp_fm
-            t_vec = np.linspace(1, tmp_fm, self.n_segments + 1)
-            t_vec = [int(round(x)) - 1 for x in t_vec]
-            out.append(inp[i * batch_size:(i + 1) *
-                           batch_size, t_vec[:-1]].clone())
-        out = torch.cat(out, axis=0)
-        return out
 
 
 def get_time_vector(size, length):
