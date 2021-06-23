@@ -67,23 +67,14 @@ class Feeder(Dataset):
         for i in range(len(self.label)):
             add_index = np.random.choice(range(1, self.data.shape[2]), size=int(
                 self.add_rate * self.data.shape[2]), replace=False)
+            add_index.sort()
 
             # tmp_deleted = np.delete(self.data[i], drop_index, 1)
             add_data.append(np.concatenate(
                 (self.data[i], self.data[i][:, add_index]), axis=1))
         self.data = np.array(add_data)
-
-        # tmp_label = []
-        # tmp_data = []
-        # sub_index = [72, 71, 70, 11, 73, 68, 10, 104, 74,
-        #              105, 28, 106, 75, 76, 102, 81, 29, 77, 83]
-        # for i in range(len(self.label)):
-        #     if self.label[i] in sub_index:
-        #         tmp_label.append(sub_index.index(self.label[i]))
-        #         tmp_data.append(self.data[i])
-        # self.label = tmp_label
-        # self.data = np.array(tmp_data)
-        # print(len(self.label))
+        
+        
 
     def get_mean_map(self):
         data = self.data
