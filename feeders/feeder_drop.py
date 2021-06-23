@@ -69,7 +69,7 @@ class Feeder(Dataset):
             # self.data[i, :, drop_index] = self.data[i, :, drop_index-1]
             tmp_deleted = np.delete(self.data[i], drop_index, 1)
             self.data[i] = np.concatenate((tmp_deleted, tmp_deleted[:,:len(drop_index)]), axis=1)
-        self.data = self.data[:, :, :300 - len(drop_index)]
+        self.data = self.data[:, :, :- len(drop_index)]
         # tmp_label = []
         # tmp_data = []
         # sub_index = [72, 71, 70, 11, 73, 68, 10, 104, 74,
