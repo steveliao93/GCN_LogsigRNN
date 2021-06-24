@@ -90,7 +90,7 @@ class Model(nn.Module):
             #x = self.dropout1(x)
             y = self.logsig_bn1(y)
             y = y.view(
-                N * M, V, self.n_segments1, self.c1).permute(0, 3, 2, 1).contiguous()
+                N * M, V, self.n_segments1, self.c2).permute(0, 3, 2, 1).contiguous()
             x_stream.append(y)
         x = torch.cat(x_stream, axis=1)
 
