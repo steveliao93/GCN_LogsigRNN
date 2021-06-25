@@ -478,7 +478,7 @@ class Processor():
         self.print_log(f'Training epoch: {epoch + 1}, LR: {current_lr:.4f}')
 
         process = tqdm(loader, dynamic_ncols=True)
-        for batch_idx, (data, label, index) in enumerate(process):
+        for batch_idx, (data, label, length, index) in enumerate(process):
             self.global_step += 1
             # get data
             with torch.no_grad():
@@ -584,7 +584,7 @@ class Processor():
                 process = tqdm(self.data_loader[ln], dynamic_ncols=True)
                 nb_classes = self.arg.model_args['num_class']
                 confusion_matrix = torch.zeros(nb_classes, nb_classes)
-                for batch_idx, (data, label, index) in enumerate(process):
+                for batch_idx, (data, label, length, index) in enumerate(process):
                     data = data.float().cuda(self.output_device)
                     label = label.long().cuda(self.output_device)
                     output = self.model(data)
@@ -638,17 +638,17 @@ class Processor():
                 self.val_writer.add_scalar('loss_l1', l1, self.global_step)
                 self.val_writer.add_scalar('acc', accuracy, self.global_step)
 
-            score_dict = dict(
-                zip(self.data_loader[ln].dataset.sample_name, score))
+            #score_dict = dict(
+            #    zip(self.data_loader[ln].dataset.sample_name, score))
             self.print_log(
                 f'\tMean {ln} loss of {len(self.data_loader[ln])} batches: {np.mean(loss_values)}.')
             for k in self.arg.show_topk:
                 self.print_log(
                     f'\tTop {k}: {100 * self.data_loader[ln].dataset.top_k(score, k):.2f}%')
 
-            if save_score:
-                with open('{}/epoch{}_{}_score.pkl'.format(self.arg.work_dir, epoch + 1, ln), 'wb') as f:
-                    pickle.dump(score_dict, f)
+            #if save_score:
+            #    with open('{}/epoch{}_{}_score.pkl'.format(self.arg.work_dir, epoch + 1, ln), 'wb') as f:
+            #        pickle.dump(score_dict, f)
 
         # Empty cache after evaluation
         torch.cuda.empty_cache()
