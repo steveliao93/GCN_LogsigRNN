@@ -497,7 +497,7 @@ class Processor():
         for batch_idx, (data, label, length, index) in enumerate(process):
             self.global_step += 1
             # get data
-            data = pad2max(data, length)
+            data = interpolate(data, length)
             with torch.no_grad():
                 data = data.float().cuda(self.output_device)
                 label = label.long().cuda(self.output_device)
@@ -607,7 +607,7 @@ class Processor():
                 nb_classes = self.arg.model_args['num_class']
                 confusion_matrix = torch.zeros(nb_classes, nb_classes)
                 for batch_idx, (data, label, length, index) in enumerate(process):
-                    data = pad2max(data, length)
+                    data = interpolate(data, length)
                     data = data.float().cuda(self.output_device)
                     label = label.long().cuda(self.output_device)
                     length = length.long().cuda(self.output_device)
@@ -736,8 +736,10 @@ def str2bool(v):
         raise argparse.ArgumentTypeError('Boolean value expected.')
 
 
-def pad2max(data, length):
+def interpolate(data, length):
         # data: N, C, T, V, M
+        # reshape to N*M*V, T, C
+        # interpolate the steams
     N, C, T, V, M = data.shape
     max_length = int(max(length).item())
     if max_length<100:
