@@ -26,5 +26,5 @@ Put downloaded data into the following directory structure:
 
 For varied length case:
 - The general training template command
-- `python3 main_var.py --config ./config/ntu_sub/train_joint_logsig_gcn_var.yaml --device 0`
+- `python3 main.py --config ./config/ntu_sub/train_joint.yaml --device 0`
 - The model used is in `model/gcn_logsig_var.py`
