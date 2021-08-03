@@ -3,6 +3,7 @@ sys.path.extend(['../'])
 
 import torch
 import pickle
+import cv2
 import numpy as np
 from torch.utils.data import Dataset
 
@@ -75,25 +76,29 @@ class Feeder(Dataset):
         elif self.robust_add == True:
             print('start adding')
             N, C, T, V, M = self.data.shape
-            add_data = np.zeros((N, C, int(T * (1 + self.add_rate)), V, M))
-            for i in range(len(self.label)):
-                add_index = np.random.choice(range(1, int(self.length[i].item())), size=int(
-                    self.add_rate * int(self.length[i].item())), replace=False)
-                # self.data[i, :, drop_index] = self.data[i, :, drop_index-1]
-                if add_index != []:
-                    tmp_add = np.insert(self.data[i], add_index, self.data[i][:, add_index], 1)[
-                        :, :int(self.length[i].item() * (1 + self.add_rate))]
-
-                    rest = int(T * (1 + self.add_rate)) - tmp_add.shape[1]
-                    num = int(np.ceil(rest / tmp_add.shape[1]))
-
-                    pad = np.concatenate([tmp_add
-                                          for _ in range(num + 1)], 1)[:, :int(T * (1 + self.add_rate))]
-                    add_data[i] = pad
-                    self.length[i] = int(
-                        self.length[i].item() * (1 + self.add_rate))
-
+            add_data = np.zeros((N, C, int(T* (1 + self.add_rate)), V, M))
+            for i in range(len(self.data)):
+                insert_len = int((1 + self.add_rate) * int(self.length[i].item()))
+                data_numpy = self.data[i][:,:int(self.length[i].item())].transpose(3, 1, 2, 0)
+                
+                data_rescaled = np.zeros(
+                    (data_numpy.shape[0], insert_len, data_numpy.shape[2], data_numpy.shape[3]))
+                for person_id in range(data_numpy.shape[0]):
+                    data_rescaled[person_id] = cv2.resize(data_numpy[person_id],
+                                                          (data_numpy.shape[2],
+                                                           insert_len),
+                                                          cv2.INTER_LINEAR)
+                
+                tmp_add = data_rescaled.transpose(3, 1, 2, 0)
+                rest = int(T* (1 + self.add_rate)) - tmp_add.shape[1]
+                num = int(np.ceil(rest / tmp_add.shape[1]))
+                
+                pad = np.concatenate([tmp_add
+                                      for _ in range(num + 1)], 1)[:, :int(T* (1 + self.add_rate))]
+                add_data[i] = pad
+                self.length[i] = int(self.length[i].item() * (1 + self.add_rate))
             self.data = add_data
+            
         elif self.robust_drop == True:
             print('start dropping')
             for i in range(len(self.label)):
