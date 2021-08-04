@@ -28,5 +28,5 @@ device: [0]
 test_batch_size: 32
 weights: ./work_dir/ntu120/xsub_var/logsig_gcn_v2_c96_192_lr_0.02/weights/weights-26-102414.pt
 
-work_dir: ./eval/ntu120_var/test/logsig
+work_dir: ./eval/ntu120_var/add_0.5/logsig
 save_score: True
