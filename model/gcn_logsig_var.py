@@ -9,8 +9,6 @@ import torch.nn.functional as F
 
 from utils import import_class, count_params
 from model.ms_gcn import MultiScale_GraphConv as MS_GCN
-from model.mlp import MLP
-from model.activation import activation_factory
 from model.l_psm import *
 
 
@@ -43,7 +41,7 @@ class Model(nn.Module):
         self.gcn1 = MS_GCN(num_gcn_scales, 3, c1,
                            A_binary, disentangled_agg=True)
 
-        
+        self.n_segments1 = 80
         self.logsig_channels1 = signatory.logsignature_channels(in_channels=c1,
                                                                 depth=2)
         self.logsig1 = LogSig_v2(c1, logsig_depth=2,
@@ -62,6 +60,7 @@ class Model(nn.Module):
         self.gcn2 = MS_GCN(num_gcn_scales, c1, c2,
                            A_binary, disentangled_agg=True)
 
+        self.n_segments2 = 40
         self.logsig_channels2 = signatory.logsignature_channels(in_channels=c2,
                                                                 depth=2)
         self.logsig2 = LogSig_v2(c2, logsig_depth=2,
@@ -82,8 +81,8 @@ class Model(nn.Module):
 
     def forward(self, x, length):
         N, C, T, V, M = x.size()
-        # n_segment of each logsigrnn
         n_segments1 = 50
+
         n_segments2 = 30
         x = x.permute(0, 4, 3, 1, 2).contiguous().view(N, M * V * C, T)
         x = self.data_bn(x)
@@ -113,28 +112,6 @@ class Model(nn.Module):
         x = nn.BatchNorm1d(n_segments2).to(x.device)(x)
         x = x.view(
             N * M, V, n_segments2, self.c2).permute(0, 3, 2, 1).contiguous()
-
-        # x = F.relu(self.gcn3(x), inplace=False)
-        # x = x.permute(0, 3, 2, 1).contiguous().view(
-        #     N * M * V, self.n_segments2, self.c3).contiguous()
-
-        # x_sp = self.start_position3(x).type_as(x)
-        # x_logsig = self.logsig3(x).type_as(x)
-        # self.lstm3.flatten_parameters()
-        # x, _ = self.lstm3(torch.cat([x_logsig, x_sp], axis=-1))
-        # x = self.logsig_bn3(x)
-        # x = x.view(
-        #     N * M, V, self.n_segments3, self.c3).permute(0, 3, 2, 1).contiguous()
-
-        # Apply activation to the sum of the pathways
-        # x = F.relu(self.sgcn1(x) + self.gcn3d1(x), inplace=True)
-        # x = self.tcn1(x)
-
-        # x = F.relu(self.sgcn2(x) + self.gcn3d2(x), inplace=True)
-        # x = self.tcn2(x)
-
-        # x = F.relu(self.sgcn3(x) + self.gcn3d3(x), inplace=True)
-        # x = self.tcn3(x)
 
         out = x
         out_channels = out.size(1)
