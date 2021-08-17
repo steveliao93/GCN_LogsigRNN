@@ -4,34 +4,28 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 import math
 
-from utils.tgcn import ConvTemporalGraphical
-from utils.graph import Graph
+from utils import import_class, count_params
+from model.ms_gcn import MultiScale_GraphConv as MS_GCN
+from model.l_psm import *
 from utils.LP_logsig import *
 
 
 class LSTM_GCN(nn.Module):
-    def __init__(self, in_channels, hidden_channels, spatial_kernel_size, num_joints):
+    def __init__(self, in_channels, hidden_channels, num_gcn_scales, spatial_kernel_size, num_joints, ):
         super().__init__()
         self.in_channels = in_channels
         self.hidden_channels = hidden_channels
-
-        self.W_g = ConvTemporalGraphical(in_channels, 4 * hidden_channels,
-                                         spatial_kernel_size)
-        self.U_g = ConvTemporalGraphical(hidden_channels, 4 * hidden_channels,
-                                         spatial_kernel_size)
+        
+        self.W_g = MS_GCN(num_gcn_scales, in_channels, 4 * hidden_channels,
+                           A_binary, disentangled_agg=True)        
+        self.U_g = MS_GCN(num_gcn_scales, hidden_channels, 4 * hidden_channels,
+                           A_binary, disentangled_agg=True)
         self.b = nn.Parameter(torch.Tensor(4 * hidden_channels, 1, num_joints))
 
         self.attention = attention(hidden_channels)
 
-        self.init_weights()
-
-    def init_weights(self):
-        stdv = 1.0 / math.sqrt(self.hidden_channels)
-        for weight in self.parameters():
-            weight.data.uniform_(-stdv, stdv)
-
     def forward(self,
-                x, A,
+                x,
                 init_states=None):
 
         N, C, T, V = x.size()
@@ -49,7 +43,7 @@ class LSTM_GCN(nn.Module):
         for t in range(T):
             x_t = x[:, :, t:t + 1, :]
 
-            gates = self.W_g(x_t, A)[0] + self.U_g(h_t, A)[0] + self.b
+            gates = self.W_g(x_t)[0] + self.U_g(h_t)[0] + self.b
             i_t, f_t, g_t, o_t = (
                 torch.sigmoid(gates[:, :HS]),  # input
                 torch.sigmoid(gates[:, HS:HS * 2]),  # forget
