@@ -519,7 +519,7 @@ class Processor():
                 batch_data, batch_label, batch_length = data[left:
                                                              right], label[left:right], length[left:right]
                 # forward
-                output = self.model(batch_data, batch_length)
+                output = self.model(batch_data)
                 if isinstance(output, tuple):
                     output, l1 = output
                     l1 = l1.mean()
@@ -611,7 +611,7 @@ class Processor():
                     data = data.float().cuda(self.output_device)
                     label = label.long().cuda(self.output_device)
                     length = length.long().cuda(self.output_device)
-                    output = self.model(data, length)
+                    output = self.model(data)
                     if isinstance(output, tuple):
                         output, l1 = output
                         l1 = l1.mean()
