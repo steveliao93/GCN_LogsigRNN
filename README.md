@@ -1,4 +1,7 @@
-# gcn_logsigrnn
+# GCN_LogsigRNN
+
+This repository holds the codebase for the paper:
+**Logsig-RNN: a novel network for robust and efficient skeleton-based action recognition** Shujian Liao, Terry Lyons, Weixin Yang, Kevin Schlegel, and Hao Ni, BMVC 2021
 ### Data Preprocessing
 
 #### Directory Structure
@@ -18,13 +21,14 @@ Put downloaded data into the following directory structure:
 
 #### Generating Data
 
-1. NTU RGB+D
+1. NTU RGB+D 120
     - `cd data_gen`
     - `python3 ntu120_gendata.py`
     
 ## Training & Testing
 
-For varied length case:
-- The general training template command
-- `python3 main.py --config ./config/ntu_sub/train_joint.yaml --device 0`
-- The model used is in `model/gcn_logsig_var.py`
+To train a new GCN-LogsigRNN model run:
+```
+python3 main.py --config ./config/ntu_sub/train_joint.yaml --device 0
+```
+- The model used is in `model/gcn_logsigRNN.py`
