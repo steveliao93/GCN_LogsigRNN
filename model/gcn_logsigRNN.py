@@ -39,9 +39,9 @@ class Model(nn.Module):
         self.n_segments1 = 50
         self.logsig_channels1 = signatory.logsignature_channels(in_channels=c1,
                                                                 depth=2)
-        self.logsig1 = LogSig_v2(c1, logsig_depth=2,
+        self.logsig1 = LogSig(c1, n_segments=self.n_segments1, logsig_depth=2,
                                  logsig_channels=self.logsig_channels1)
-        self.start_position1 = sp_v2()
+        self.start_position1 = sp(n_segments=self.n_segments1)
 
         self.lstm1 = nn.LSTM(
             input_size=c1 + self.logsig_channels1,
@@ -57,9 +57,9 @@ class Model(nn.Module):
         self.n_segments2 = 30
         self.logsig_channels2 = signatory.logsignature_channels(in_channels=c2,
                                                                 depth=2)
-        self.logsig2 = LogSig_v2(c2, logsig_depth=2,
+        self.logsig2 = LogSig(c2, n_segments=self.n_segments2, logsig_depth=2,
                                  logsig_channels=self.logsig_channels2)
-        self.start_position2 = sp_v2()
+        self.start_position2 = sp(n_segments=self.n_segments2)
 
         self.lstm2 = nn.LSTM(
             input_size=c2 + self.logsig_channels2,
