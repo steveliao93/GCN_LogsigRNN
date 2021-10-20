@@ -1,1 +1,1 @@
-from . import gcn_logsig_var
+from . import gcn_logsigRNN
