@@ -83,8 +83,8 @@ class Model(nn.Module):
         x = x.permute(0, 3, 2, 1).contiguous().view(
             N * M * V, T, self.c1).contiguous()
 
-        x_sp = self.start_position1(x,self.n_segments1).type_as(x)
-        x_logsig = self.logsig1(x, self.n_segments1).type_as(x)
+        x_sp = self.start_position1(x).type_as(x)
+        x_logsig = self.logsig1(x).type_as(x)
         self.lstm1.flatten_parameters()
         x, _ = self.lstm1(torch.cat([x_logsig, x_sp], axis=-1))
         x = nn.BatchNorm1d(self.n_segments1).to(x.device)(x)
@@ -95,8 +95,8 @@ class Model(nn.Module):
         x = x.permute(0, 3, 2, 1).contiguous().view(
             N * M * V, self.n_segments1, self.c2).contiguous()
 
-        x_sp = self.start_position2(x, self.n_segments2).type_as(x)
-        x_logsig = self.logsig2(x, self.n_segments2).type_as(x)
+        x_sp = self.start_position2(x).type_as(x)
+        x_logsig = self.logsig2(x).type_as(x)
         self.lstm2.flatten_parameters()
         x, _ = self.lstm2(torch.cat([x_logsig, x_sp], axis=-1))
         x = nn.BatchNorm1d(self.n_segments2).to(x.device)(x)
