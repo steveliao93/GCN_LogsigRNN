@@ -37,15 +37,37 @@ class Model(nn.Module):
                            A_binary)
 
         self.n_segments1 = 50
-        self.logsigrnn1 = LogSigRNN(
-            c1, c1, self.n_segments1, depth=2, hidden_dim=50, len_interval_u=20)
+        self.logsig_channels1 = signatory.logsignature_channels(in_channels=c1,
+                                                                depth=2)
+        self.logsig1 = LogSig_v2(c1, logsig_depth=2,
+                                 logsig_channels=self.logsig_channels1)
+        self.start_position1 = sp_v2()
+
+        self.lstm1 = nn.LSTM(
+            input_size=c1 + self.logsig_channels1,
+            hidden_size=c1,
+            num_layers=1,
+            batch_first=True,
+            bidirectional=False
+        )
 
         self.gcn2 = GCN(num_gcn_scales, c1, c2,
                            A_binary)
 
         self.n_segments2 = 30
-        self.logsigrnn2 = LogSigRNN(
-            c2, c2, self.n_segments2, depth=2, hidden_dim=50, len_interval_u=20)
+        self.logsig_channels2 = signatory.logsignature_channels(in_channels=c2,
+                                                                depth=2)
+        self.logsig2 = LogSig_v2(c2, logsig_depth=2,
+                                 logsig_channels=self.logsig_channels2)
+        self.start_position2 = sp_v2()
+
+        self.lstm2 = nn.LSTM(
+            input_size=c2 + self.logsig_channels2,
+            hidden_size=c2,
+            num_layers=1,
+            batch_first=True,
+            bidirectional=False
+        )
 
         self.fc = nn.Linear(c2, num_class)
 
@@ -61,7 +83,10 @@ class Model(nn.Module):
         x = x.permute(0, 3, 2, 1).contiguous().view(
             N * M * V, T, self.c1).contiguous()
 
-        x = self.logsigrnn1(x, self.n_segments1, x.device)
+        x_sp = self.start_position1(x,self.n_segments1).type_as(x)
+        x_logsig = self.logsig1(x, self.n_segments1).type_as(x)
+        self.lstm1.flatten_parameters()
+        x, _ = self.lstm1(torch.cat([x_logsig, x_sp], axis=-1))
         x = nn.BatchNorm1d(self.n_segments1).to(x.device)(x)
         x = x.view(
             N * M, V, self.n_segments1, self.c1).permute(0, 3, 2, 1).contiguous()
@@ -70,11 +95,14 @@ class Model(nn.Module):
         x = x.permute(0, 3, 2, 1).contiguous().view(
             N * M * V, self.n_segments1, self.c2).contiguous()
 
-        x = self.logsigrnn2(x, self.n_segments2, x.device)
+        x_sp = self.start_position2(x, self.n_segments2).type_as(x)
+        x_logsig = self.logsig2(x, self.n_segments2).type_as(x)
+        self.lstm2.flatten_parameters()
+        x, _ = self.lstm2(torch.cat([x_logsig, x_sp], axis=-1))
         x = nn.BatchNorm1d(self.n_segments2).to(x.device)(x)
         x = x.view(
             N * M, V, self.n_segments2, self.c2).permute(0, 3, 2, 1).contiguous()
-
+        
         out = x
         out_channels = out.size(1)
         out = out.view(N, M, out_channels, -1)
