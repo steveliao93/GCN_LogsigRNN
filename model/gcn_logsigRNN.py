@@ -9,7 +9,7 @@ import torch.nn.functional as F
 
 from utils import import_class, count_params
 from model.gcn import GraphConv as GCN
-from model.l_psm import *
+from model.logsignature import *
 
 
 class Model(nn.Module):
