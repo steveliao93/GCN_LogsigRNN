@@ -1,11 +1,11 @@
 
-work_dir: ./work_dir/chalearn_500/logsig_gcn_1000_c288_seg16
+work_dir: ./work_dir/chalearn/logsig_gcn
 
 # feeder
-feeder: feeders.feeder_chalearn.Feeder
+feeder: feeders.feeder.Feeder
 train_feeder_args:
   data_path: ./data/chalearn/train_data.npy
-  label_path: ./data/chalearn/train_label.npy
+  label_path: ./data/chalearn/train_label.pkl
   debug: False
   random_choose: False
   random_shift: False
@@ -15,10 +15,10 @@ train_feeder_args:
 
 test_feeder_args:
   data_path: ./data/chalearn/val_data.npy
-  label_path: ./data/chalearn/val_label.npy
+  label_path: ./data/chalearn/val_label.pkl
 
 # model
-model: model.logsig_gcn_chalearn.Model
+model: model.logsig_gcn.Model
 model_args:
   num_class: 20
   num_point: 19
