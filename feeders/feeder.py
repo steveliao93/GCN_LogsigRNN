@@ -57,14 +57,16 @@ class Feeder(Dataset):
                 self.sample_name, self.label = pickle.load(
                     f, encoding='latin1')
                 #self.label = self.label[0:10000]
+        try:
+            self.length = np.load(self.length_path)
+        except:
+            self.length = np.zeros((self.label.shape[0],))
 
         # load data
         if self.use_mmap:
             self.data = np.load(self.data_path, mmap_mode='r')
-            self.length = np.load(self.length_path, mmap_mode='r')
         else:
             self.data = np.load(self.data_path)
-            self.length = np.load(self.length_path)
         if self.debug:
             self.label = self.label[0:100]
             self.data = self.data[0:100]
