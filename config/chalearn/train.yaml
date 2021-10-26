@@ -18,7 +18,7 @@ test_feeder_args:
   label_path: ./data/chalearn/val_label.pkl
 
 # model
-model: model.logsig_gcn.Model
+model: model.gcn_logsigRNN.Model
 model_args:
   num_class: 20
   num_point: 19
