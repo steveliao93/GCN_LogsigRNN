@@ -2,7 +2,11 @@
 
 This repository holds the codebase for the paper:
 **Logsig-RNN: a novel network for robust and efficient skeleton-based action recognition** Shujian Liao, Terry Lyons, Weixin Yang, Kevin Schlegel, and Hao Ni, BMVC 2021
-### Data Preprocessing
+### Datasets
+We provide configureations for two datasets:
+
+-Chalearn 2013 skeleton
+-NTU RGB+D 120 skeleton
 
 #### Directory Structure
 
@@ -10,6 +14,7 @@ Put downloaded data into the following directory structure:
 
 ```
 - data/
+  - chalearn/
   - nturgbd_raw/
     - nturgb+d_skeletons/     # from `nturgbd_skeletons_s001_to_s017.zip`
       ...
@@ -32,3 +37,53 @@ To train a new GCN-LogsigRNN model run:
 python3 main.py --config ./config/ntu_sub/train_joint.yaml --device 0
 ```
 - The model used is in `model/gcn_logsigRNN.py`
+
+## Training & Testing
+
+- To train a new GCN-LogsigRNN model run:
+```
+python3 main.py
+  --config <config file>
+  --work-dir <place to keep things (weights, checkpoints, logs)>
+  --device <GPU IDs to use>
+```
+
+- To test a trained model:
+```
+python3 main.py
+  --config <config file>
+  --work-dir <place to keep things>
+  --device <GPU IDs to use>
+  --weights <path to model weights>
+```
+
+- Examples
+  - Train on Chalearn 2013
+    - `python3 main.py --config ./config/chalearn/train_joint.yaml `
+  - Train on NTU 120 XSub Joint on device 0
+    - `python3 main.py --config ./config/ntu_sub/train_joint.yaml --device 0`
+
+- Resume training from checkpoint
+```
+python3 main.py
+  ...  # Same params as before
+  --start-epoch <0 indexed epoch>
+  --weights <weights in work_dir>
+  --checkpoint <checkpoint in work_dir>
+```
+
+## Acknowledgements
+
+Thanks for the authors of the following works such that our codes have a decent base
+  - [MS-G3D](https://github.com/kenziyuliu/MS-G3D)
+  - [2s-AGCN](https://github.com/lshiwjx/2s-AGCN)
+  - [ST-GCN](https://github.com/yysijie/st-gcn)
+
+## Citation
+
+Please cite this work if you find it useful:
+
+
+
+
+  
