@@ -1,7 +1,7 @@
 # GCN_LogsigRNN
 
 This repository holds the codebase for the paper:
-> Logsig-RNN: a novel network for robust and efficient skeleton-based action recognition** Shujian Liao, Terry Lyons, Weixin Yang, Kevin Schlegel, and Hao Ni, BMVC 2021
+> Logsig-RNN: a novel network for robust and efficient skeleton-based action recognition - Shujian Liao, Terry Lyons, Weixin Yang, Kevin Schlegel, and Hao Ni, BMVC 2021
 ### Datasets
 We provide configureations for two datasets:
 
