@@ -29,14 +29,6 @@ Put downloaded data into the following directory structure:
 1. NTU RGB+D 120
     - `cd data_gen`
     - `python3 ntu120_gendata.py`
-    
-## Training & Testing
-
-To train a new GCN-LogsigRNN model run:
-```
-python3 main.py --config ./config/ntu_sub/train_joint.yaml --device 0
-```
-- The model used is in `model/gcn_logsigRNN.py`
 
 ## Training & Testing
 
@@ -62,6 +54,7 @@ python3 main.py
     - `python3 main.py --config ./config/chalearn/train_joint.yaml `
   - Train on NTU 120 XSub Joint on device 0
     - `python3 main.py --config ./config/ntu_sub/train_joint.yaml --device 0`
+  - The model used is in `model/gcn_logsigRNN.py`
 
 - Resume training from checkpoint
 ```
@@ -74,7 +67,7 @@ python3 main.py
 
 ## Acknowledgements
 
-Thanks for the authors of the following works such that our codes have a decent base
+We want to thank the authors of the following papers and repositories, their work formed the basis for this repository
   - [MS-G3D](https://github.com/kenziyuliu/MS-G3D)
   - [2s-AGCN](https://github.com/lshiwjx/2s-AGCN)
   - [ST-GCN](https://github.com/yysijie/st-gcn)
