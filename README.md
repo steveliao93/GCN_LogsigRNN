@@ -82,6 +82,14 @@ We want to thank the authors of the following papers and repositories, their wor
 ## Citation
 
 Please cite this work if you find it useful.
+```
+@InProceedings{2021LogsigRNN,
+  title={Logsig-RNN: a novel network for robust and efficient skeleton-based action recognition},
+  author={Liao, Shujian and Lyons, Terry and Yang, Weixin and Schlegel, Kevin and Ni, Hao},
+  booktitle={British Machine Vision Conference},
+  year={2021}
+}
+```
 
 
 
