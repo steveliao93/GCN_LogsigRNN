@@ -81,7 +81,7 @@ We want to thank the authors of the following papers and repositories, their wor
 
 ## Citation
 
-Please cite this work if you find it useful:
+Please cite this work if you find it useful.
 
 
 
